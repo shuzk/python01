@@ -72,7 +72,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'meiduo_mall.wsgi.application'
 
 
-# Database
+# Database    aaaa
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
