@@ -18,8 +18,8 @@ var vm = new Vue({
         error_phone_message: '',
         error_sms_code_message: '',
 
-        image_code_id: '', // 图片验证码id
-        image_code_url: '',
+        // image_code_id: '', // 图片验证码id
+        // image_code_url: '',
 
         sms_code_tip: '获取短信验证码',
         sending_flag: false, // 正在发送短信标志
@@ -30,7 +30,10 @@ var vm = new Vue({
         mobile: '',
         image_code: '',
         sms_code: '',
-        allow: false
+        allow: false,
+
+        image_code_id: "",  // 图片验证码编号
+        image_code_url: "",  // 验证码图片路径
     },
     // 页面渲染时调用的函数
     mounted: function(){
