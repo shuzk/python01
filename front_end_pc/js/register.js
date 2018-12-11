@@ -29,7 +29,7 @@ var vm = new Vue({
         password2: '',
         mobile: '',
         image_code: '',
-        sms_code: '',
+        sms_code: '',  // 短信验证码输入框输入的内容
         allow: false,
 
         image_code_id: "",  // 图片验证码编号
