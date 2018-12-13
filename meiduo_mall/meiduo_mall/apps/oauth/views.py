@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.settings import api_settings
 
 from oauth.models import OAuthQQUser
+from oauth.serializers import OAuthQQUserSerializer
 from oauth.utils import OAuthQQ
 from oauth.exceptions import OAuthQQAPIError
 
@@ -24,10 +26,14 @@ class QQAuthURLView(APIView):
         return Response({'login_url': login_url})
 
 
-class QQAuthUserView(APIView):
+class QQAuthUserView(CreateAPIView):
+    serializer_class = OAuthQQUserSerializer
+    # def __init__(self):
+    #     print(111111111111)
 
     def get(self, request):
         # 获取code
+        # print(111111111111)
         code = request.query_params.get('code')
 
         if not code:

@@ -10,7 +10,6 @@ from django.conf import settings
 import json
 import logging
 
-
 # from . import constants
 from oauth import constants
 from oauth.exceptions import OAuthQQAPIError
@@ -22,6 +21,7 @@ class OAuthQQ(object):
     """
     QQ认证辅助工具类
     """
+
     def __init__(self, client_id=None, redirect_uri=None, client_secret=None, state=None):
         self.client_id = client_id or settings.QQ_CLIENT_ID
         self.client_secret = client_secret or settings.QQ_CLIENT_SECRET
@@ -70,16 +70,15 @@ class OAuthQQ(object):
             # 解析access_token
             resp_dict = urllib.parse.parse_qs(resp_data)
         except Exception as e:
-            logger.error('获取access_token异常:%s' %e)
+            logger.error('获取access_token异常:%s' % e)
             raise OAuthQQAPIError
         else:
             access_token = resp_dict.get('access_token')
 
             return access_token[0]
 
-
     def get_openid(self, access_token):
-        url = 'https://graph.qq.com/oauth2.0/me?access_token'+access_token
+        url = 'https://graph.qq.com/oauth2.0/me?access_token=' + access_token
 
         try:
             # 发送请求
@@ -95,7 +94,7 @@ class OAuthQQ(object):
 
             resp_dict = json.loads(resp_data)
         except Exception as e:
-            logger.error('获取openid异常:%s' %e)
+            logger.error('获取openid异常:%s' % e)
             raise OAuthQQAPIError
         else:
             openid = resp_dict.get('openid')
@@ -106,3 +105,14 @@ class OAuthQQ(object):
         serializer = TJWSSerializer(settings.SECRET_KEY, constants.BIND_USER_ACCESS_TOKEN_EXPIRES)
         token = serializer.dumps({'openid': openid})
         return token.decode()
+
+    @staticmethod
+    def check_bind_user_access_token(access_token):
+        serializer = TJWSSerializer(settings.SECRET_KEY, constants.BIND_USER_ACCESS_TOKEN_EXPIRES)
+        try:
+            data = serializer.loads(access_token)
+        except BadData:
+            return None
+        else:
+            return data['openid']
+
