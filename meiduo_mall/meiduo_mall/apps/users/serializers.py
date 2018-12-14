@@ -2,11 +2,9 @@ import re
 
 from django_redis import get_redis_connection
 from rest_framework import serializers
-
-# from .models import User
 from rest_framework_jwt.settings import api_settings
-
 from users.models import User
+from celery_tasks.email.tasks import send_active_email
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -100,6 +98,37 @@ class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'mobile', 'email', 'email_active')
+
+
+class EmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email')
+        extra_kwargs = {
+            'email': {
+                'required': True
+            }
+        }
+
+    def update(self, instance, validated_data):
+        """
+        :param instance: 视图传过来的user对象
+        :param validated_data:
+        :return:
+        """
+        email = validated_data['email']
+
+        # 保存应该写在生成激活链接之前，因为激活链接中self.email，需要有email，没有保存的话就取不到email
+        instance.email = email
+        instance.save()
+
+        # 生成激活链接
+        url = instance.generate_verify_email_url()
+        # 发送邮件
+        send_active_email.delay(email, url)
+
+        return instance
+
 
 
 

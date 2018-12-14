@@ -1,7 +1,10 @@
 import re
 
 from django.contrib.auth.backends import ModelBackend
+from rest_framework.generics import UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
+from users import serializers
 from users.models import User
 
 
@@ -44,3 +47,7 @@ class UsernameMobileAuthBackend(ModelBackend):
         user = get_user_by_account(username)
         if user is not None and user.check_password(password):
             return user
+
+
+
+

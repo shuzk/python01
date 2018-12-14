@@ -20,7 +20,9 @@ var vm = new Vue({
     },
     mounted: function(){
         // 判断用户的登录状态
+        // console.log(11211)
         if (this.user_id && this.token) {
+            console.log(2222222222)
             axios.get(this.host + '/user/', {
                     // 向后端传递JWT token的方法
                     headers: {
@@ -30,6 +32,7 @@ var vm = new Vue({
                 })
                 .then(response => {
                     // 加载用户数据
+                    console.log(33333)
                     this.user_id = response.data.id;
                     this.username = response.data.username;
                     this.mobile = response.data.mobile;
@@ -54,7 +57,29 @@ var vm = new Vue({
         },
         // 保存email
         save_email: function(){
-
+            var re = /^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$/;
+            if(re.test(this.email)) {
+                this.email_error = false;
+            } else {
+                this.email_error = true;
+                return;
+            }
+            axios.put(this.host + '/email/',
+                { email: this.email },
+                {
+                    headers: {
+                        'Authorization': 'JWT ' + this.token
+                    },
+                    responseType: 'json'
+                })
+                .then(response => {
+                    this.set_email = false;
+                    this.send_email_btn_disabled = true;
+                    this.send_email_tip = '已发送验证邮件'
+                })
+                .catch(error => {
+                    alert(error.data);
+                });
         }
     }
 });
