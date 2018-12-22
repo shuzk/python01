@@ -77,8 +77,6 @@ class Address(BaseModel):
         verbose_name_plural = verbose_name
         ordering = ['-update_time']  # 指明默认排序的
 
-
-
 # class BaseMOdel(models.Model):
 #     """为模型类补充字段"""
 #     create_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
@@ -97,4 +95,7 @@ class Address(BaseModel):
 #         db_table = 'tb_oauth_qq'
 #         verbose_name = 'QQ登录用户数据'
 #         verbose_name_plural = verbose_name
+
+
+
 
