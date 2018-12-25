@@ -3,8 +3,11 @@ import re
 from django_redis import get_redis_connection
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
+
+from goods.models import SKU
 from users.models import User
 from celery_tasks.email.tasks import send_active_email
+from users.constants import USER_BROWSE_HISTORY_MAX_LIMIT
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -128,6 +131,54 @@ class EmailSerializer(serializers.ModelSerializer):
         send_active_email.delay(email, url)
 
         return instance
+
+
+class AddUserBrowsingHistorySerializer(serializers.Serializer):
+    """
+        添加用户浏览历史序列化器
+        """
+    sku_id = serializers.IntegerField(label="商品SKU编号", min_value=1)
+
+    def validate_sku_id(self, value):
+        """
+        检验sku_id是否存在
+        """
+        try:
+            SKU.objects.get(id=value)
+        except SKU.DoesNotExist:
+            raise serializers.ValidationError('该商品不存在')
+        return value
+
+    def create(self,validated_data):
+        # sku_id
+        sku_id = validated_data['sku_id']
+
+        # user_id
+        user = self.context['request'].user
+
+        # redis [6,1,2,3,4,5]
+        redis_conn = get_redis_connection('history')
+        pl = redis_conn.pipeline()
+
+        redis_key = 'history_%s' % user.id
+        # 去重
+        pl.lrem(redis_key, 0, sku_id)
+
+        # 保存 增加
+        pl.lpush(redis_key, sku_id)
+
+        # 截断
+        pl.ltrim(redis_key, 0, USER_BROWSE_HISTORY_MAX_LIMIT-1)
+
+        pl.execute()
+
+        return validated_data
+
+
+class SKUSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SKU
+        fields = ('id', 'name', 'price', 'default_image_url', 'comments')
 
 
 

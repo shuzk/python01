@@ -3,13 +3,16 @@ from django.shortcuts import render
 
 # Create your views here.
 # from rest_framework.request import Request
+from django_redis import get_redis_connection
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from users import constants
 from users import serializers
+from goods.models import SKU
 
 
 # def index(request):
@@ -76,4 +79,42 @@ class VerifyEmailView(APIView):
             user.email_active = True
             user.save()
             return Response({'message': 'OK'})
+
+
+class UserBrowsingHistoryView(CreateAPIView):
+    """
+    用户浏览历史记录
+    """
+    serializer_class = serializers.AddUserBrowsingHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # user_id
+        user_id = request.user.id
+
+
+        # 查询redis
+        redis_conn = get_redis_connection('history')
+        sku_id_list = redis_conn.lrange('history_%s'%user_id, 0, constants.USER_BROWSE_HISTORY_MAX_LIMIT)
+
+        # 查询1数据库
+        # sku_object_list = SKU.objects.filter(id__in=sku_id_list)
+        skus = []
+        for sku_id in sku_id_list:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append(sku)
+        # 序列化返回
+        serializer = serializers.SKUSerializer(skus, many=True)
+        return Response(serializer.data)
+
+
+
+
+
+
+
+
+
+
+
 
